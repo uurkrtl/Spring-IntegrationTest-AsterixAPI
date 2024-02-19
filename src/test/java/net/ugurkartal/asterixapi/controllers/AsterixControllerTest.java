@@ -6,14 +6,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.awt.*;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -44,7 +47,7 @@ class AsterixControllerTest {
         asterixRepository.save(character);
 
         //WHEN & THEN
-        mvc.perform(MockMvcRequestBuilders.get("/asterix/characters/1"))
+        mvc.perform(MockMvcRequestBuilders.get("/asterix/characters/getById/1"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         """
@@ -52,14 +55,37 @@ class AsterixControllerTest {
                                     "id": "1",
                                     "name": "Astrix",
                                     "age": 4,
-                                    "role": "King"
+                                    "profession": "King"
                                 }
                                 """
                 ));
     }
 
     @Test
-    void addCharacter() {
+    void shouldReturnNewCharacter_WhenCalledWithValidJSON() throws Exception {
+        // GIVEN
+        // WHEN & THEN
+        mvc.perform(MockMvcRequestBuilders.post("/asterix/characters/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                                {
+                                    "name": "Astrix",
+                                    "age": 4,
+                                    "profession": "King"
+                                }
+                                """
+                ))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(
+                        """
+                                {
+                                    "name": "Astrix",
+                                    "age": 4,
+                                    "profession": "King"
+                                }
+                                """
+                ))
+                .andExpect(jsonPath("$.id").exists());
     }
 
     @Test
